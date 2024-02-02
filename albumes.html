@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Albumes" />
+    <meta name="author" content="Chema" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/fa-5.15.4.all.min.css" media="all" />
+    <title>Albumes</title>
+  </head>
+  <body>
+    <div class="modal fade" tabindex="-1" id="dialogoLetra">
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content background-theme text-theme">
+          <div class="modal-header">
+            <h5 class="modal-title panel-info">Letra</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <pre id="letra">
+                </pre>
+              </div>
+              <div class="col-md-6">
+                <pre id="letra2">
+                </pre>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid" id="albumes">
+      <div class="row">
+
+        <div class="col-md-12 col-xs-12">
+          <div class="card">
+            <h4 class="card-header">Albumes</h4>
+            <div class="card-body">
+              <div class="card-text">
+
+                <table id="tablaAlbumes" class="table table-condensed table-striped table-responsive">
+                  <thead>
+                    <tr>
+                      <th>Titulo</th>
+                      <th>Año</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="container-fluid" id="album" class="d-none">
+      <div class="row">
+        <div class="col-md-12 col-xs-12">
+          <h4>Album</h4>
+        </div>
+
+        <div class="col-md-12 col-xs-12">
+          <form method="POST">
+            <fieldset>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="artista">Artista</label>
+                    <input type="text" class="form-control" id="artista" name="artista" readonly="" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="titulo">T&iacute;tulo</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo" readonly="" />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="anyo">A&ntilde;o</label>
+                    <input type="text" class="form-control" id="anyo" name="anyo" readonly="" />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="porcentaje">Porcentaje</label>
+                    <input type="text" class="form-control" id="porcentaje" readonly="" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <table  id="tablaPistas" class="table table-condensed table-striped table-responsive">
+                    <thead>
+                      <tr>
+                        <th>Numero</th>
+                        <th>Titulo</th>
+                        <th>Duración</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <a class="btn btn-secondary" onclick="lista();">Volver</a>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+
+    </div>
+    
+    
+
+
+    <footer class="footer">
+      <div class="container-fluid">
+        <br/>
+        <span class="text-muted">
+          &copy; Chema, 2024
+        </span>
+      </div>
+      <script type="text/javascript" src="psb.json.js"></script>
+
+      <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+      <script type="text/javascript" src="js/bootstrap.bundle.min.js"></script>
+
+      <script type="text/javascript" src="js/alb.js"></script>
+    </footer>
+  </body>
+</html>
