@@ -1,9 +1,31 @@
+var datos;
 
 $(document).ready(function () {
   lista();
 });
 
 function lista() {
+  let items = $('#items');
+  items.html('');
+  
+  menu.forEach((item) => {
+    console.log(item.albumes[0].artista);
+    
+    let a = $('<a href="#" class="list-group-item list-group-item-action"></a>').append(item.albumes[0].artista);
+    a.click(function (e) {
+      e.preventDefault();
+      datos = item;
+      discografia();
+    });
+    items.append(a);
+  });
+
+  $('#albumes').addClass('d-none');
+  $('#album').addClass('d-none');
+  $('#lista').removeClass('d-none');
+}
+
+function discografia() {
   var tabla = $('#tablaAlbumes tbody');
   tabla.html('');
 
@@ -23,6 +45,7 @@ function lista() {
 
   $('#albumes').removeClass('d-none');
   $('#album').addClass('d-none');
+  $('#lista').addClass('d-none');
 }
 
 function detalle(id) {
@@ -54,6 +77,7 @@ function detalle(id) {
 
     $('#album').removeClass('d-none');
     $('#albumes').addClass('d-none');
+    $('#lista').addClass('d-none');
   }
 }
 
