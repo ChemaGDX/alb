@@ -36,7 +36,26 @@
       </div>
     </div>
 
-    <div class="container-fluid" id="albumes">
+    <div class="container-fluid" id="lista">
+      <div class="row">
+        <div class="col-md-12 col-xs-12">
+          <h4 class="card-header">Discograf&iacute;as</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 col-xs-12">
+          <div class="list-group" id="items">
+            <a href="#" class="list-group-item list-group-item-action"></a>
+            <a href="#" class="list-group-item list-group-item-action">Dapibus ac facilisis in</a>
+            <a href="#" class="list-group-item list-group-item-action">Morbi leo risus</a>
+            <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
+            <a href="#" class="list-group-item list-group-item-action disabled">Vestibulum at eros</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid d-none" id="albumes">
       <div class="row">
 
         <div class="col-md-12 col-xs-12">
@@ -62,11 +81,17 @@
           </div>
         </div>
 
-
       </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <a class="btn btn-secondary" onclick="lista();">Volver</a>
+        </div>
+      </div>
+
     </div>
 
-    <div class="container-fluid" id="album" class="d-none">
+    <div class="container-fluid d-none" id="album">
       <div class="row">
         <div class="col-md-12 col-xs-12">
           <h4>Album</h4>
@@ -120,7 +145,7 @@
               </div>
               <div class="row">
                 <div class="col-md-12">
-                  <a class="btn btn-secondary" onclick="lista();">Volver</a>
+                  <a class="btn btn-secondary" onclick="discografia();">Volver</a>
                 </div>
               </div>
             </fieldset>
@@ -129,9 +154,6 @@
       </div>
 
     </div>
-    
-    
-
 
     <footer class="footer">
       <div class="container-fluid">
@@ -140,7 +162,17 @@
           &copy; Chema, 2024
         </span>
       </div>
+      <script type="text/javascript" src="dm.json.js"></script>
       <script type="text/javascript" src="psb.json.js"></script>
+      <script type="text/javascript" src="erasure.json.js"></script>
+      <script type="text/javascript" src="il.json.js"></script>
+      <script type="text/javascript" src="orbital.json.js"></script>
+      <script type="text/javascript" src="tcb.json.js"></script>
+      <script type="text/javascript" src="uw.json.js"></script>
+      <script>
+        let menu = [dm, psb, erasure, il, orbital, tcb, uw];
+      </script>
+
 
       <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
       <script type="text/javascript" src="js/bootstrap.bundle.min.js"></script>
