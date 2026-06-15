@@ -4,7 +4,7 @@ let moderat =
     "id" : 0,
     "artista" : "Moderat",
     "titulo" : "Moderat",
-    "anyo" : 0,
+    "anyo" : 2009,
     "porcentaje" : 0,
     "sentimiento" : 0.0,
     "pistas" : [ {
@@ -111,7 +111,7 @@ let moderat =
     "id" : 1,
     "artista" : "Moderat",
     "titulo" : "II",
-    "anyo" : 0,
+    "anyo" : 2013,
     "porcentaje" : 0,
     "sentimiento" : 0.0,
     "pistas" : [ {
@@ -218,7 +218,7 @@ let moderat =
     "id" : 2,
     "artista" : "Moderat",
     "titulo" : "III",
-    "anyo" : 0,
+    "anyo" : 2016,
     "porcentaje" : 0,
     "sentimiento" : 0.0,
     "pistas" : [ {
