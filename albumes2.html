@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Discografías de música en una interfaz moderna" />
+  <meta name="author" content="Chema" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#08090d" />
+  <title>Discografías · Albumes</title>
+  <style>
+    :root {
+      --bg: #08090d;
+      --panel: #12151d;
+      --panel-2: #171b25;
+      --panel-3: #1d2230;
+      --line: rgba(255, 255, 255, .08);
+      --line-strong: rgba(255, 255, 255, .16);
+      --text: #eef1f7;
+      --muted: #9aa4b6;
+      --muted-2: #6f7a8d;
+      --accent: #8b5cf6;
+      --accent-2: #22d3ee;
+      --accent-3: #f472b6;
+      --shadow: 0 24px 60px -24px rgba(0, 0, 0, .85);
+      --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(1100px 620px at 82% -10%, rgba(139, 92, 246, .18), transparent 60%),
+        radial-gradient(900px 540px at 8% 0%, rgba(34, 211, 238, .12), transparent 55%),
+        radial-gradient(800px 600px at 50% 120%, rgba(244, 114, 182, .08), transparent 60%),
+        var(--bg);
+    }
+
+    body.modal-open { overflow: hidden; }
+    ::selection { background: rgba(139, 92, 246, .45); color: #fff; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #242a38; border: 2px solid var(--bg); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #313a4d; }
+
+    a { color: inherit; }
+    button { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 6px; }
+
+    .skip-link {
+      position: fixed; top: 10px; left: 10px; z-index: 100;
+      padding: 10px 16px; border-radius: 12px;
+      background: var(--panel-3); color: var(--text); text-decoration: none;
+      transform: translateY(-160%); transition: transform .2s ease;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    /* Top bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 9, 13, .78);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+    }
+    .topbar-inner {
+      width: 100%; max-width: 1240px; margin: 0 auto;
+      padding: 13px 24px; display: flex; align-items: center; gap: 22px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; flex: none; }
+    .brand-mark {
+      position: relative; width: 42px; height: 42px; border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: repeating-radial-gradient(circle at 50% 50%, #14161d 0 1.5px, #202431 1.5px 3px);
+      box-shadow: 0 10px 26px -12px rgba(0, 0, 0, .9);
+      display: grid; place-items: center; flex: none;
+    }
+    .brand-mark::before {
+      content: ""; position: absolute; inset: 36%; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .brand-mark::after {
+      content: ""; position: absolute; width: 5px; height: 5px;
+      border-radius: 50%; background: #0a0b10;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-text strong { font-size: .98rem; letter-spacing: -.01em; }
+    .brand-text small {
+      margin-top: 3px; font-size: .68rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted-2);
+    }
+
+    .searchbox {
+      flex: 1; max-width: 560px; height: 44px;
+      display: flex; align-items: center; gap: 10px; padding: 0 12px;
+      border: 1px solid var(--line); border-radius: 14px;
+      background: rgba(255, 255, 255, .045);
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .searchbox:hover { background: rgba(255, 255, 255, .06); }
+    .searchbox:focus-within {
+      border-color: rgba(139, 92, 246, .65);
+      background: rgba(255, 255, 255, .06);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, .14);
+    }
+    .search-icon { display: grid; place-items: center; color: var(--muted-2); flex: none; }
+    .searchbox input {
+      flex: 1; min-width: 0; height: 100%; border: 0; outline: 0;
+      background: transparent; color: var(--text); font: inherit; font-size: .9rem;
+    }
+    .searchbox input::placeholder { color: var(--muted-2); }
+    .searchbox kbd {
+      flex: none; padding: 2px 7px; border: 1px solid var(--line-strong);
+      border-radius: 7px; background: rgba(255, 255, 255, .05);
+      color: var(--muted-2); font-family: var(--mono); font-size: .68rem;
+    }
+    .search-clear {
+      flex: none; display: grid; place-items: center; width: 26px; height: 26px;
+      padding: 0; border: 1px solid var(--line); border-radius: 8px;
+      background: rgba(255, 255, 255, .05); color: var(--muted); cursor: pointer;
+    }
+    .search-clear:hover { color: var(--text); border-color: var(--line-strong); }
+
+    .topstats {
+      display: flex; align-items: center; gap: 16px; flex: none;
+      font-size: .76rem; color: var(--muted-2); white-space: nowrap;
+    }
+    .topstats strong { color: var(--text); font-weight: 700; }
+
+    /* Layout */
+    .app {
+      width: 100%; max-width: 1240px; margin: 0 auto;
+      padding: 38px 24px 72px; flex: 1; position: relative; z-index: 1;
+    }
+    .footer {
+      width: 100%; max-width: 1240px; margin: 0 auto;
+      padding: 0 24px 34px; display: flex; flex-wrap: wrap; gap: 8px;
+      color: var(--muted-2); font-size: .76rem;
+    }
+    .footer-sep { opacity: .5; }
+
+    /* Typography */
+    .eyebrow {
+      margin: 0 0 8px; font-size: .7rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: #a78bfa;
+    }
+    h1 {
+      margin: 0; font-size: clamp(2rem, 4.2vw, 3.1rem); line-height: 1.04;
+      letter-spacing: -.035em; font-weight: 750;
+      background: linear-gradient(120deg, #ffffff 15%, #bdc8ff 65%, #8ee8f5 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lede { margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
+    .lede .query { color: var(--text); font-weight: 600; }
+    .dot { color: var(--muted-2); margin: 0 2px; }
+    .page-head { margin-bottom: 26px; }
+    .page-head--split {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 24px; flex-wrap: wrap;
+    }
+
+    /* Crumbs */
+    .crumbs {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
+      margin-bottom: 20px; font-size: .8rem; color: var(--muted-2);
+    }
+    .crumbs a { color: var(--muted); text-decoration: none; transition: color .2s ease; }
+    .crumbs a:hover { color: var(--text); }
+    .crumbs .crumb-sep { opacity: .5; }
+    .crumbs [aria-current="page"] { color: var(--text); }
+
+    /* Chips and meters */
+    .pill {
+      display: inline-flex; align-items: center; padding: 4px 10px;
+      border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255, 255, 255, .05); color: var(--muted);
+      font-size: .72rem; font-weight: 600; white-space: nowrap;
+    }
+    .score-pill {
+      display: inline-flex; align-items: center; padding: 4px 10px;
+      border: 1px solid var(--c); border-radius: 999px;
+      background: rgba(255, 255, 255, .04); color: var(--c);
+      font-size: .76rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .meter {
+      display: block; width: 100%; height: 5px; border-radius: 999px;
+      background: rgba(255, 255, 255, .08); overflow: hidden;
+    }
+    .meter > span { display: block; height: 100%; border-radius: inherit; }
+    .meter--lg { height: 7px; margin-top: 18px; max-width: 340px; }
+    .score-pill--empty {
+      border-color: var(--line); background: rgba(255, 255, 255, .03);
+      color: var(--muted-2); font-weight: 600;
+    }
+    .metric-empty { color: var(--muted-2); }
+    .track-pct--empty, .result-score--empty { color: var(--muted-2); }
+    /* Artist cards */
+    .artist-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 18px;
+    }
+    .artist-card {
+      position: relative; overflow: hidden; display: flex; flex-direction: column;
+      gap: 14px; min-height: 208px; padding: 22px;
+      border: 1px solid var(--line); border-radius: 22px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .015) 42%, transparent 75%), var(--panel);
+      color: var(--text); text-align: left; cursor: pointer;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease, background .25s ease;
+      animation: rise .5s cubic-bezier(.2, .7, .2, 1) both;
+      animation-delay: calc(var(--order, 0) * 22ms);
+    }
+    .artist-card::after {
+      content: ""; position: absolute; right: -70px; bottom: -110px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, hsl(var(--h1) 85% 62% / .28), transparent 68%);
+      filter: blur(8px); pointer-events: none;
+      transition: transform .35s ease;
+    }
+    .artist-card:hover {
+      transform: translateY(-4px);
+      border-color: hsl(var(--h1) 60% 60% / .4);
+      box-shadow: var(--shadow);
+    }
+    .artist-card:hover::after { transform: scale(1.18); }
+    .artist-top {
+      position: relative; z-index: 1; display: flex;
+      align-items: flex-start; justify-content: space-between; gap: 12px;
+    }
+    .monogram {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 54px; height: 54px; border-radius: 17px; flex: none;
+      background: linear-gradient(135deg, hsl(var(--h1) 86% 72%), hsl(var(--h2) 88% 62%));
+      color: #0a0b10; font-size: 1.02rem; font-weight: 800; letter-spacing: .04em;
+      box-shadow: 0 12px 28px -10px hsl(var(--h1) 80% 55% / .75);
+    }
+    .artist-name {
+      position: relative; z-index: 1; font-size: 1.28rem;
+      font-weight: 700; letter-spacing: -.02em; line-height: 1.15;
+    }
+    .artist-sub {
+      position: relative; z-index: 1; margin-top: -6px;
+      color: var(--muted-2); font-size: .78rem;
+    }
+    .artist-foot {
+      position: relative; z-index: 1; margin-top: auto; padding-top: 14px;
+      border-top: 1px solid var(--line); display: flex;
+      align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .artist-foot-label { color: var(--muted-2); font-size: .74rem; }
+
+    /* Album cards */
+    .select-wrap {
+      display: flex; flex-direction: column; gap: 6px;
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted-2);
+    }
+    .select-wrap select {
+      -webkit-appearance: none; appearance: none;
+      min-width: 168px; padding: 10px 38px 10px 12px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background-color: var(--panel-2);
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+      background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+      color: var(--text); font: inherit; font-size: .84rem;
+      letter-spacing: 0; text-transform: none; cursor: pointer;
+    }
+    .select-wrap select:hover { border-color: var(--line-strong); }
+
+    .album-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 18px;
+    }
+    .album-card {
+      display: flex; flex-direction: column; gap: 13px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 20px; background: var(--panel);
+      color: var(--text); text-align: left; cursor: pointer;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease, background .25s ease;
+      animation: rise .5s cubic-bezier(.2, .7, .2, 1) both;
+      animation-delay: calc(var(--order, 0) * 18ms);
+    }
+    .album-card:hover {
+      transform: translateY(-4px); border-color: rgba(255, 255, 255, .18);
+      background: var(--panel-2); box-shadow: var(--shadow);
+    }
+
+    /* Generated covers */
+    .cover, .hero-cover, .result-cover {
+      position: relative; display: block; aspect-ratio: 1 / 1;
+      border-radius: 15px; overflow: hidden; isolation: isolate;
+      background: radial-gradient(circle at 30% 18%, hsl(var(--h1) 82% 62% / .95), hsl(var(--h2) 74% 40% / .92));
+    }
+    .cover::before, .hero-cover::before, .result-cover::before {
+      content: ""; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(158deg, rgba(255, 255, 255, .3), transparent 42%, rgba(0, 0, 0, .36));
+    }
+    .cover-vinyl {
+      position: absolute; left: 50%; top: 50%; z-index: 2;
+      width: 60%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: repeating-radial-gradient(circle at 50% 50%, #0f1015 0 2px, #1b1e28 2px 4px);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), 0 18px 40px -14px rgba(0, 0, 0, .9);
+      transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+    }
+    .cover-vinyl::after {
+      content: ""; position: absolute; inset: 41%; border-radius: 50%;
+      background: hsl(var(--h1) 88% 64%); box-shadow: 0 0 0 3px rgba(0, 0, 0, .55);
+    }
+    .album-card:hover .cover-vinyl { transform: translate(-50%, -50%) rotate(22deg) scale(1.03); }
+    .cover-year {
+      position: absolute; left: 13px; bottom: 8px; z-index: 3;
+      color: rgba(255, 255, 255, .34); font-size: 1.7rem;
+      font-weight: 800; letter-spacing: -.05em; line-height: 1;
+    }
+    .cover-score {
+      position: absolute; top: 10px; right: 10px; z-index: 3;
+      padding: 4px 9px; border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 999px; background: rgba(6, 8, 12, .55);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      color: var(--c); font-size: .7rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .album-info { display: flex; flex-direction: column; gap: 6px; padding: 0 4px 4px; }
+    .album-title {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; font-size: .95rem; font-weight: 650;
+      line-height: 1.3; letter-spacing: -.01em;
+    }
+    .album-sub { color: var(--muted-2); font-size: .75rem; }
+    .album-info .meter { margin-top: 3px; }
+
+    /* Album hero */
+    .album-hero {
+      position: relative; overflow: hidden; display: grid;
+      grid-template-columns: minmax(190px, 260px) minmax(0, 1fr) auto;
+      align-items: center; gap: 30px; padding: 28px; margin-bottom: 24px;
+      border: 1px solid var(--line); border-radius: 26px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .06), transparent 55%), var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .album-hero::after {
+      content: ""; position: absolute; right: -8%; bottom: -110%;
+      width: 520px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, hsl(var(--h1) 82% 58% / .22), transparent 66%);
+      filter: blur(18px); pointer-events: none;
+    }
+    .hero-cover, .hero-body, .score-ring { position: relative; z-index: 1; }
+    .hero-cover { width: 100%; border-radius: 18px; box-shadow: 0 26px 60px -20px rgba(0, 0, 0, .85); }
+    .hero-body h1 { font-size: clamp(1.9rem, 3.8vw, 2.9rem); }
+    .hero-artist { margin: 8px 0 0; color: var(--muted); font-size: 1rem; font-weight: 600; }
+    .metric-row { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 22px; }
+    .metric { display: flex; flex-direction: column; gap: 2px; }
+    .metric span {
+      color: var(--muted-2); font-size: .68rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+    }
+    .metric strong { font-size: .98rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .score-ring {
+      --size: 124px; width: var(--size); height: var(--size); flex: none;
+      display: grid; place-items: center; border-radius: 50%;
+      background: conic-gradient(var(--c) calc(var(--score) * 1%), rgba(255, 255, 255, .08) 0);
+      box-shadow: 0 0 40px -14px var(--c);
+    }
+    .score-ring::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #12151d; }
+    .score-ring span { position: relative; font-size: 1.62rem; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .score-ring small { font-size: .78rem; color: var(--muted); font-weight: 600; }
+    .score-ring--empty {
+      background: rgba(255, 255, 255, .03); border: 1px dashed var(--line-strong);
+      box-shadow: none;
+    }
+    .score-ring--empty span { color: var(--muted-2); }
+    /* Tracks */
+    .panel { border: 1px solid var(--line); border-radius: 22px; background: var(--panel); overflow: hidden; }
+    .panel-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; padding: 22px 24px 16px; border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { margin: 0; font-size: 1.14rem; letter-spacing: -.01em; }
+    .track-list { list-style: none; margin: 0; padding: 6px 8px 10px; display: flex; flex-direction: column; }
+    .track + .track { border-top: 1px solid var(--line); }
+    .track { border-radius: 12px; scroll-margin-top: 110px; }
+    .track.is-target { background: linear-gradient(90deg, rgba(139, 92, 246, .16), transparent 62%); }
+    .track.is-target .track-btn { box-shadow: inset 0 0 0 1px rgba(139, 92, 246, .38); border-radius: 12px; }
+    .track.is-target .track-title { color: #ffffff; }
+    .track-btn {
+      width: 100%; display: grid; grid-template-columns: 46px minmax(0, 1fr) 158px 72px 40px;
+      align-items: center; gap: 14px; padding: 11px 14px;
+      border: 0; border-radius: 12px; background: transparent;
+      text-align: left; cursor: pointer; transition: background .2s ease;
+    }
+    .track-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .045); }
+    .track-btn:disabled { cursor: default; opacity: .52; }
+    .track-num { padding-right: 6px; text-align: right; color: var(--muted-2); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .track-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .track-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: .93rem; }
+    .track-sub { color: var(--muted-2); font-size: .72rem; }
+    .track-score { display: flex; align-items: center; justify-content: flex-end; gap: 9px; }
+    .track-score .meter { min-width: 64px; }
+    .track-pct { min-width: 34px; text-align: right; color: var(--muted); font-size: .73rem; font-variant-numeric: tabular-nums; }
+    .track-dur { text-align: right; color: var(--muted); font-family: var(--mono); font-size: .76rem; }
+    .track-action { display: grid; place-items: center; color: var(--muted-2); }
+    .track-btn:hover:not(:disabled) .track-action { color: var(--accent-2); }
+
+    /* Search results */
+    .result-group { margin-bottom: 30px; }
+    .result-group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .result-group-head h2 { margin: 0; font-size: 1rem; letter-spacing: -.01em; }
+    .result-list { display: flex; flex-direction: column; gap: 5px; }
+    .result-row {
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      padding: 10px 14px; border: 1px solid transparent; border-radius: 14px;
+      background: rgba(255, 255, 255, .023); color: var(--text);
+      text-align: left; cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .result-row:hover { background: rgba(255, 255, 255, .06); border-color: var(--line); transform: translateX(2px); }
+    .result-mono {
+      display: grid; place-items: center; width: 44px; height: 44px; flex: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, hsl(var(--h1) 86% 72%), hsl(var(--h2) 88% 62%));
+      color: #0a0b10; font-size: .8rem; font-weight: 800; letter-spacing: .03em;
+    }
+    .result-cover { width: 46px; height: 46px; flex: none; border-radius: 11px; }
+    .result-cover .cover-vinyl { width: 66%; }
+    .result-num { width: 34px; flex: none; text-align: right; color: var(--muted-2); font-weight: 650; font-variant-numeric: tabular-nums; }
+    .result-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .result-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: .9rem; }
+    .result-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-2); font-size: .74rem; }
+    .result-meta { flex: none; color: var(--muted-2); font-size: .76rem; }
+    .result-score { flex: none; min-width: 42px; text-align: right; font-weight: 700; font-size: .78rem; font-variant-numeric: tabular-nums; }
+    .result-dur { flex: none; min-width: 50px; text-align: right; color: var(--muted-2); font-family: var(--mono); font-size: .74rem; }
+    .result-arrow { flex: none; color: var(--muted-2); display: grid; place-items: center; }
+    .result-row:hover .result-arrow { color: var(--accent-2); }
+    .result-more { margin: 9px 4px 0; color: var(--muted-2); font-size: .74rem; }
+
+    /* Empty states */
+    .empty {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 72px 24px; border: 1px dashed var(--line-strong); border-radius: 22px;
+      background: rgba(255, 255, 255, .015); color: var(--muted); text-align: center;
+    }
+    .empty h2 { margin: 4px 0 0; color: var(--text); font-size: 1.15rem; }
+    .empty p { margin: 0; max-width: 460px; font-size: .86rem; }
+    .empty code { padding: 1px 6px; border-radius: 6px; background: rgba(255, 255, 255, .07); color: var(--text); font-family: var(--mono); font-size: .8rem; }
+    .empty-icon {
+      display: grid; place-items: center; width: 58px; height: 58px; margin-bottom: 4px;
+      border: 1px solid var(--line); border-radius: 18px;
+      background: rgba(139, 92, 246, .1); color: #a78bfa;
+    }
+    .empty-icon svg { width: 26px; height: 26px; }
+    .empty--compact { border: 0; padding: 44px 24px; background: transparent; }
+
+    /* Lyrics dialog */
+    .lyrics-dialog {
+      width: min(1080px, calc(100vw - 32px)); max-width: none;
+      max-height: calc(100vh - 48px); padding: 0;
+      border: 1px solid var(--line-strong); border-radius: 24px;
+      background: var(--panel); color: var(--text);
+      box-shadow: 0 40px 120px -30px #000; overflow: hidden;
+    }
+    .lyrics-dialog::backdrop {
+      background: rgba(4, 5, 8, .74);
+      -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    }
+    .lyrics-panel { display: flex; flex-direction: column; max-height: calc(100vh - 48px); }
+    .lyrics-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
+      padding: 20px 24px; border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, rgba(139, 92, 246, .1), transparent 55%);
+    }
+    .lyrics-head .eyebrow { margin-bottom: 5px; color: var(--muted); }
+    .lyrics-head h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.02em; line-height: 1.25; }
+    .icon-btn {
+      display: grid; place-items: center; width: 38px; height: 38px; flex: none;
+      padding: 0; border: 1px solid var(--line); border-radius: 12px;
+      background: rgba(255, 255, 255, .045); color: var(--muted); cursor: pointer;
+      transition: color .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--line-strong); background: rgba(255, 255, 255, .08); }
+    .lyrics-body { display: grid; grid-template-columns: 1fr 1fr; overflow: auto; }
+    .lyrics-col { min-width: 0; padding: 22px 24px 30px; }
+    .lyrics-col + .lyrics-col { border-left: 1px solid var(--line); }
+    .lyrics-col h3 {
+      margin: 0 0 14px; color: var(--muted-2); font-size: .68rem;
+      font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .lyrics-col pre {
+      margin: 0; color: #ccd4e3; font-family: var(--font);
+      font-size: .92rem; line-height: 1.65; white-space: pre-wrap; word-wrap: break-word;
+    }
+    .lyrics-col pre.is-missing { color: var(--muted-2); font-style: italic; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .score-ring { display: none; }
+      .album-hero { grid-template-columns: minmax(170px, 220px) minmax(0, 1fr); }
+    }
+    @media (max-width: 860px) {
+      .topstats { display: none; }
+    }
+    @media (max-width: 720px) {
+      .topbar-inner { flex-wrap: wrap; gap: 12px; }
+      .searchbox { order: 3; flex-basis: 100%; max-width: none; }
+      .searchbox kbd { display: none; }
+      .app { padding: 26px 16px 56px; }
+      .footer { padding: 0 16px 26px; }
+      .album-hero { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
+      .hero-cover { width: min(210px, 62%); }
+      .track-btn { grid-template-columns: 34px minmax(0, 1fr) 72px 34px; gap: 10px; padding: 10px 8px; }
+      .track-score .meter { display: none; }
+      .track-pct { min-width: 0; font-size: .7rem; }
+      .track-dur { font-size: .72rem; }
+      .result-row { gap: 10px; padding: 9px 10px; }
+      .result-meta, .result-dur { display: none; }
+      .lyrics-body { grid-template-columns: 1fr; }
+      .lyrics-col + .lyrics-col { border-left: 0; border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 480px) {
+      .artist-grid { grid-template-columns: 1fr; }
+      .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .album-title { font-size: .86rem; }
+      .cover-year { font-size: 1.25rem; }
+      .cover-score { font-size: .64rem; padding: 3px 7px; }
+      .brand-text small { display: none; }
+    }
+    @media (max-width: 400px) {
+      .album-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#view">Saltar al contenido</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#/" aria-label="Ir a discografías">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <strong>Discografías</strong>
+          <small>Colección personal</small>
+        </span>
+      </a>
+
+      <div class="searchbox">
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.6-3.6"></path></svg>
+        </span>
+        <input id="search" type="search" placeholder="Buscar artistas, álbumes o canciones…" autocomplete="off" spellcheck="false" aria-label="Buscar en la colección" />
+        <kbd>/</kbd>
+        <button type="button" class="search-clear" id="search-clear" aria-label="Limpiar búsqueda" hidden>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </div>
+
+      <div class="topstats" id="topstats" aria-label="Resumen de la colección"></div>
+    </div>
+  </header>
+
+  <main class="app" id="app">
+    <div id="view" class="view"></div>
+  </main>
+
+  <footer class="footer">
+    <span>© Chema, 2024–2026</span>
+    <span class="footer-sep">·</span>
+    <span id="footer-meta"></span>
+  </footer>
+
+  <dialog class="lyrics-dialog" id="lyrics" aria-labelledby="lyrics-title">
+    <div class="lyrics-panel">
+      <header class="lyrics-head">
+        <div>
+          <p class="eyebrow" id="lyrics-album"></p>
+          <h2 id="lyrics-title"></h2>
+        </div>
+        <button type="button" class="icon-btn" id="lyrics-close" aria-label="Cerrar letra">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </header>
+      <div class="lyrics-body">
+        <section class="lyrics-col">
+          <h3>Original</h3>
+          <pre id="lyrics-original"></pre>
+        </section>
+        <section class="lyrics-col">
+          <h3>Traducción</h3>
+          <pre id="lyrics-translation"></pre>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="dm.json.js"></script>
+  <script src="psb.json.js"></script>
+  <script src="erasure.json.js"></script>
+  <script src="il.json.js"></script>
+  <script src="moderat.json.js"></script>
+  <script src="orbital.json.js"></script>
+  <script src="tcb.json.js"></script>
+  <script src="uw.json.js"></script>
+  <script src="joy.json.js"></script>
+  <script src="neworder.json.js"></script>
+  <script src="mj.json.js"></script>
+  <script>
+    let menu = [dm, psb, erasure, il, moderat, orbital, tcb, uw, joy, neworder, mj];
+  </script>
+  <script>
+    (function () {
+      'use strict';
+
+      const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ESC[ch]);
+      const fold = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const num = (value, fallback = 0) => { const n = Number(value); return Number.isFinite(n) ? n : fallback; };
+      const asScore = (value) => Math.max(0, Math.min(100, Math.round(num(value))));
+      const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+      const hasNumber = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+      const average = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+      const numberFmt = new Intl.NumberFormat('es-ES');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const ICON = {
+        search: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.6-3.6"></path></svg>',
+        arrow: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>',
+        lyrics: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>',
+        off: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l16 16"></path><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>',
+        vinyl: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="6.5" stroke-dasharray="1 3"></circle></svg>'
+      };
+
+      function scoreColor(value) {
+        if (value >= 75) return '#34d399';
+        if (value >= 50) return '#fbbf24';
+        return '#fb7185';
+      }
+
+      function parseDuration(value) {
+        const match = /^(\d+):(\d{2})$/.exec(String(value || ''));
+        return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
+      }
+
+      function formatTrackDuration(value) {
+        const seconds = parseDuration(value);
+        if (!seconds) return '—';
+        return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+      }
+
+      function formatDuration(totalSeconds) {
+        if (!totalSeconds) return '—';
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.round((totalSeconds % 3600) / 60);
+        if (hours) return hours + ' h ' + minutes + ' min';
+        return Math.max(1, minutes) + ' min';
+      }
+
+      function yearRange(years) {
+        if (!years.length) return '—';
+        const min = Math.min.apply(null, years);
+        const max = Math.max.apply(null, years);
+        return min === max ? String(min) : min + '–' + max;
+      }
+
+      function initials(name) {
+        const words = String(name || '')
+          .split(/\s+/)
+          .filter((word) => word && !/^(the|los|las|el|la)$/i.test(word));
+        return ((words[0] || '?').charAt(0) + (words[1] || '').charAt(0)).toUpperCase();
+      }
+
+      function hueFor(index, offset) {
+        return ((index * 53 + offset) % 360 + 360) % 360;
+      }
+
+      const ARTISTS = (typeof menu !== 'undefined' && Array.isArray(menu) ? menu : []).map((data, artistIndex) => {
+        const rawAlbums = Array.isArray(data && data.albumes) ? data.albumes : [];
+        const name = (rawAlbums[0] && rawAlbums[0].artista) || ('Artista ' + (artistIndex + 1));
+        const hue = hueFor(artistIndex, 205);
+
+        const albums = rawAlbums.map((raw, albumIndex) => {
+          const rawTracks = Array.isArray(raw && raw.pistas) ? raw.pistas : [];
+          const tracks = rawTracks.map((track, trackIndex) => {
+            const title = (track && track.nombre) || 'Sin título';
+            return {
+              id: track && track.id !== undefined && track.id !== null ? track.id : trackIndex,
+              orden: track && track.orden !== undefined && track.orden !== null ? track.orden : trackIndex + 1,
+              nombre: title,
+              duracion: (track && track.duracion) || '',
+              letra: track && typeof track.letra === 'string' ? track.letra : '',
+              letra2: track && typeof track.letra2 === 'string' ? track.letra2 : '',
+              porcentaje: asScore(track && track.porcentaje),
+              sentimiento: num(track && track.sentimiento),
+              searchName: fold(title)
+            };
+          });
+          const year = num(raw && raw.anyo);
+          const trackScores = tracks.map((track) => track.porcentaje).filter((value) => value > 0);
+          const rawScore = raw && raw.porcentaje;
+          const albumScore = hasNumber(rawScore) && Number(rawScore) > 0
+            ? asScore(rawScore)
+            : asScore(average(trackScores));
+          const albumHue = hueFor(artistIndex, albumIndex * 37 + 340);
+          return {
+            id: raw && raw.id !== undefined && raw.id !== null ? raw.id : albumIndex,
+            titulo: (raw && raw.titulo) || 'Álbum sin título',
+            artista: name,
+            anyo: year,
+            yearLabel: year > 0 ? String(year) : '—',
+            porcentaje: albumScore,
+            sentimiento: num(raw && raw.sentimiento),
+            tracks,
+            trackCount: tracks.length,
+            totalSeconds: tracks.reduce((sum, track) => sum + parseDuration(track.duracion), 0),
+            hue: albumHue,
+            hue2: (albumHue + 55) % 360,
+            albumIndex,
+            searchTitle: fold((raw && raw.titulo) || '')
+          };
+        });
+
+        const years = albums.map((album) => album.anyo).filter((year) => year > 0);
+        const albumScores = albums.map((album) => album.porcentaje).filter((value) => value > 0);
+        const hasScores = albums.some((album) => {
+          return album.porcentaje > 0 || album.tracks.some((track) => track.porcentaje > 0);
+        });
+        const hasSentiment = albums.some((album) => {
+          return album.sentimiento > 0 || album.tracks.some((track) => track.sentimiento > 0);
+        });
+
+        albums.forEach((album) => {
+          album.hasScore = hasScores;
+          album.tracks.forEach((track) => { track.hasScore = hasScores; });
+        });
+
+        return {
+          index: artistIndex,
+          name,
+          albums,
+          albumCount: albums.length,
+          trackCount: albums.reduce((sum, album) => sum + album.trackCount, 0),
+          yearLabel: yearRange(years),
+          avgScore: asScore(average(albumScores)),
+          hasScores: hasScores,
+          hasSentiment: hasSentiment,
+          hue,
+          hue2: (hue + 65) % 360,
+          searchName: fold(name)
+        };
+      });
+
+      const TOTALS = {
+        artists: ARTISTS.length,
+        albums: ARTISTS.reduce((sum, artist) => sum + artist.albumCount, 0),
+        tracks: ARTISTS.reduce((sum, artist) => sum + artist.trackCount, 0)
+      };
+
+      const el = {
+        view: document.getElementById('view'),
+        search: document.getElementById('search'),
+        clear: document.getElementById('search-clear'),
+        topstats: document.getElementById('topstats'),
+        footer: document.getElementById('footer-meta'),
+        dialog: document.getElementById('lyrics'),
+        lyricsTitle: document.getElementById('lyrics-title'),
+        lyricsAlbum: document.getElementById('lyrics-album'),
+        lyricsOriginal: document.getElementById('lyrics-original'),
+        lyricsTranslation: document.getElementById('lyrics-translation'),
+        lyricsClose: document.getElementById('lyrics-close')
+      };
+
+      const state = { query: '', sort: 'year-asc' };
+
+      const SORTS = {
+        'year-asc': (a, b) => (a.anyo || 9999) - (b.anyo || 9999) || a.titulo.localeCompare(b.titulo, 'es'),
+        'year-desc': (a, b) => (b.anyo || -1) - (a.anyo || -1) || a.titulo.localeCompare(b.titulo, 'es'),
+        'title-asc': (a, b) => a.titulo.localeCompare(b.titulo, 'es'),
+        'score-desc': (a, b) => b.porcentaje - a.porcentaje || a.titulo.localeCompare(b.titulo, 'es')
+      };
+
+      const SORT_LABELS = {
+        'year-asc': 'Año (ascendente)',
+        'year-desc': 'Año (descendente)',
+        'title-asc': 'Título (A–Z)',
+        'score-desc': 'Puntuación (mayor)'
+      };
+      function paintStats() {
+        el.topstats.innerHTML =
+          '<span><strong>' + numberFmt.format(TOTALS.artists) + '</strong> artistas</span>' +
+          '<span><strong>' + numberFmt.format(TOTALS.albums) + '</strong> álbumes</span>' +
+          '<span><strong>' + numberFmt.format(TOTALS.tracks) + '</strong> canciones</span>';
+        el.footer.textContent = numberFmt.format(TOTALS.albums) + ' álbumes · ' +
+          numberFmt.format(TOTALS.tracks) + ' canciones · datos locales';
+      }
+
+      function artistCard(artist) {
+        return '<button type="button" class="artist-card" data-action="open-artist" data-artist="' + artist.index +
+          '" style="--h1:' + artist.hue + ';--h2:' + artist.hue2 + ';--order:' + artist.index + '">' +
+          '<span class="artist-top">' +
+            '<span class="monogram" aria-hidden="true">' + esc(initials(artist.name)) + '</span>' +
+            '<span class="pill">' + artist.albumCount + ' ' + (artist.albumCount === 1 ? 'álbum' : 'álbumes') + '</span>' +
+          '</span>' +
+          '<span class="artist-name">' + esc(artist.name) + '</span>' +
+          '<span class="artist-sub">' + esc(artist.yearLabel) + ' <span class="dot">·</span> ' +
+            numberFmt.format(artist.trackCount) + ' canciones</span>' +
+          '<span class="artist-foot">' +
+            '<span class="artist-foot-label">Puntuación media</span>' +
+            (artist.hasScores
+              ? '<span class="score-pill" style="--c:' + scoreColor(artist.avgScore) + '">' +
+                artist.avgScore + '%</span>'
+              : '<span class="score-pill score-pill--empty">Sin puntuar</span>') +
+          '</span>' +
+        '</button>';
+      }
+
+      function renderArtists() {
+        el.view.innerHTML =
+          '<section class="page-head">' +
+            '<p class="eyebrow">Colección personal</p>' +
+            '<h1>Discografías</h1>' +
+            '<p class="lede">' + TOTALS.artists + ' artistas <span class="dot">·</span> ' +
+              numberFmt.format(TOTALS.albums) + ' álbumes <span class="dot">·</span> ' +
+              numberFmt.format(TOTALS.tracks) + ' canciones</p>' +
+          '</section>' +
+          '<div class="artist-grid">' + ARTISTS.map(artistCard).join('') + '</div>';
+      }
+
+      function albumCard(artist, album) {
+        return '<button type="button" class="album-card" data-action="open-album" data-artist="' + artist.index +
+          '" data-album="' + esc(String(album.id)) + '" style="--h1:' + album.hue + ';--h2:' + album.hue2 +
+          ';--order:' + album.albumIndex + '">' +
+          '<span class="cover">' +
+            '<span class="cover-vinyl" aria-hidden="true"></span>' +
+            '<span class="cover-year" aria-hidden="true">' + esc(album.yearLabel) + '</span>' +
+            (album.hasScore
+              ? '<span class="cover-score" style="--c:' + scoreColor(album.porcentaje) + '">' +
+                album.porcentaje + '%</span>'
+              : '') +
+          '</span>' +
+          '<span class="album-info">' +
+            '<span class="album-title">' + esc(album.titulo) + '</span>' +
+            '<span class="album-sub">' + album.trackCount + ' canciones <span class="dot">·</span> ' +
+              formatDuration(album.totalSeconds) + '</span>' +
+            (album.hasScore
+              ? '<span class="meter" aria-hidden="true"><span style="width:' + album.porcentaje +
+                '%;background:' + scoreColor(album.porcentaje) + '"></span></span>'
+              : '') +
+          '</span>' +
+        '</button>';
+      }
+
+      function renderAlbums(artist) {
+        const albums = artist.albums.slice().sort(SORTS[state.sort] || SORTS['year-asc']);
+        const options = Object.keys(SORT_LABELS).map(function (value) {
+          return '<option value="' + value + '"' + (value === state.sort ? ' selected' : '') + '>' +
+            SORT_LABELS[value] + '</option>';
+        }).join('');
+        const grid = albums.length
+          ? '<div class="album-grid">' + albums.map(function (album) {
+              return albumCard(artist, album);
+            }).join('') + '</div>'
+          : '<div class="empty"><span class="empty-icon">' + ICON.vinyl + '</span>' +
+            '<h2>Sin álbumes</h2><p>Este artista no tiene álbumes registrados todavía.</p></div>';
+
+        el.view.innerHTML =
+          '<nav class="crumbs" aria-label="Ruta">' +
+            '<a href="#/">Discografías</a><span class="crumb-sep">/</span>' +
+            '<span aria-current="page">' + esc(artist.name) + '</span>' +
+          '</nav>' +
+          '<header class="page-head page-head--split">' +
+            '<div>' +
+              '<p class="eyebrow">Discografía</p>' +
+              '<h1>' + esc(artist.name) + '</h1>' +
+              '<p class="lede">' + artist.albumCount + ' álbumes <span class="dot">·</span> ' +
+                numberFmt.format(artist.trackCount) + ' canciones <span class="dot">·</span> ' +
+                esc(artist.yearLabel) + '</p>' +
+            '</div>' +
+            '<label class="select-wrap"><span>Ordenar por</span>' +
+              '<select id="sort" aria-label="Ordenar álbumes">' + options + '</select>' +
+            '</label>' +
+          '</header>' + grid;
+      }
+
+      function trackRow(artist, album, track, targetId) {
+        const hasLyrics = hasText(track.letra) || hasText(track.letra2);
+        const isTarget = targetId !== null && targetId !== undefined && String(track.id) === String(targetId);
+        const label = hasLyrics ? 'Ver letra de ' + track.nombre : track.nombre + ' no tiene letra';
+
+        return '<li class="track' + (isTarget ? ' is-target' : '') + '">' +
+          '<button type="button" class="track-btn" data-action="open-lyrics" data-artist="' + artist.index +
+            '" data-album="' + esc(String(album.id)) + '" data-track="' + esc(String(track.id)) + '"' +
+            (hasLyrics ? '' : ' disabled') + ' aria-label="' + esc(label) + '">' +
+            '<span class="track-num">' + esc(track.orden) + '</span>' +
+            '<span class="track-main">' +
+              '<span class="track-title">' + esc(track.nombre) + '</span>' +
+              '<span class="track-sub">' + (hasLyrics ? 'Letra disponible' : 'Sin letra') + '</span>' +
+            '</span>' +
+            '<span class="track-score" aria-hidden="true">' +
+              (track.hasScore
+                ? '<span class="meter"><span style="width:' + track.porcentaje + '%;background:' +
+                  scoreColor(track.porcentaje) + '"></span></span>' +
+                  '<span class="track-pct">' + track.porcentaje + '%</span>'
+                : '<span class="track-pct track-pct--empty">—</span>') +
+            '</span>' +
+            '<span class="track-dur">' + formatTrackDuration(track.duracion) + '</span>' +
+            '<span class="track-action" aria-hidden="true">' + (hasLyrics ? ICON.lyrics : ICON.off) + '</span>' +
+          '</button>' +
+        '</li>';
+      }
+
+      function renderAlbum(route) {
+        const artist = route.artist;
+        const album = route.album;
+        const sentiment = asScore(album.sentimiento * 100);
+        const rows = album.tracks.map(function (track) {
+          return trackRow(artist, album, track, route.trackId);
+        }).join('');
+        const tracksBlock = rows
+          ? '<ol class="track-list">' + rows + '</ol>'
+          : '<div class="empty empty--compact"><span class="empty-icon">' + ICON.vinyl + '</span>' +
+            '<h2>Sin canciones</h2><p>Este álbum no tiene pistas registradas.</p></div>';
+
+        el.view.innerHTML =
+          '<nav class="crumbs" aria-label="Ruta">' +
+            '<a href="#/">Discografías</a><span class="crumb-sep">/</span>' +
+            '<a href="#/a/' + artist.index + '">' + esc(artist.name) + '</a>' +
+            '<span class="crumb-sep">/</span>' +
+            '<span aria-current="page">' + esc(album.titulo) + '</span>' +
+          '</nav>' +
+          '<section class="album-hero" style="--h1:' + album.hue + ';--h2:' + album.hue2 + '">' +
+            '<div class="hero-cover cover" aria-hidden="true">' +
+              '<span class="cover-vinyl"></span>' +
+              '<span class="cover-year">' + esc(album.yearLabel) + '</span>' +
+            '</div>' +
+            '<div class="hero-body">' +
+              '<p class="eyebrow">' + (album.anyo > 0 ? esc(album.anyo) + ' · ' : '') + 'Álbum</p>' +
+              '<h1>' + esc(album.titulo) + '</h1>' +
+              '<p class="hero-artist">' + esc(artist.name) + '</p>' +
+              '<div class="metric-row">' +
+                '<div class="metric"><span>Puntuación</span>' +
+                  (album.hasScore
+                    ? '<strong style="color:' + scoreColor(album.porcentaje) + '">' +
+                      album.porcentaje + '%</strong>'
+                    : '<strong class="metric-empty">Sin puntuar</strong>') +
+                '</div>' +
+                '<div class="metric"><span>Canciones</span><strong>' + album.trackCount + '</strong></div>' +
+                '<div class="metric"><span>Duración</span><strong>' +
+                  formatDuration(album.totalSeconds) + '</strong></div>' +
+                (artist.hasSentiment
+                  ? '<div class="metric"><span>Sentimiento</span><strong>' + sentiment + '%</strong></div>'
+                  : '') +
+              '</div>' +
+              (album.hasScore
+                ? '<div class="meter meter--lg" aria-hidden="true"><span style="width:' + album.porcentaje +
+                  '%;background:' + scoreColor(album.porcentaje) + '"></span></div>'
+                : '') +
+            '</div>' +
+            (album.hasScore
+              ? '<div class="score-ring" style="--score:' + album.porcentaje + ';--c:' +
+                scoreColor(album.porcentaje) + '" role="img" aria-label="Puntuación ' +
+                album.porcentaje + ' por ciento"><span>' + album.porcentaje + '<small>%</small></span></div>'
+              : '<div class="score-ring score-ring--empty" role="img" aria-label="Sin puntuar">' +
+                '<span>—</span></div>') +
+          '</section>' +
+          '<section class="panel">' +
+            '<div class="panel-head">' +
+              '<div><p class="eyebrow">Lista de canciones</p><h2>Canciones</h2></div>' +
+              '<span class="pill">' + album.trackCount + ' pistas</span>' +
+            '</div>' + tracksBlock +
+          '</section>';
+      }
+      function resultGroup(title, total, shown, items) {
+        return '<section class="result-group">' +
+          '<div class="result-group-head"><h2>' + title + '</h2><span class="pill">' +
+            numberFmt.format(total) + '</span></div>' +
+          '<div class="result-list">' + items + '</div>' +
+          (total > shown ? '<p class="result-more">Mostrando ' + shown + ' de ' +
+            numberFmt.format(total) + '</p>' : '') +
+        '</section>';
+      }
+
+      function artistResult(artist) {
+        return '<button type="button" class="result-row" data-action="open-artist" data-artist="' + artist.index + '">' +
+          '<span class="result-mono" style="--h1:' + artist.hue + ';--h2:' + artist.hue2 + '">' +
+            esc(initials(artist.name)) + '</span>' +
+          '<span class="result-body">' +
+            '<span class="result-title">' + esc(artist.name) + '</span>' +
+            '<span class="result-sub">' + artist.albumCount + ' álbumes · ' +
+              numberFmt.format(artist.trackCount) + ' canciones</span>' +
+          '</span>' +
+          '<span class="result-meta">' + esc(artist.yearLabel) + '</span>' +
+          '<span class="result-arrow" aria-hidden="true">' + ICON.arrow + '</span>' +
+        '</button>';
+      }
+
+      function albumResult(artist, album) {
+        return '<button type="button" class="result-row" data-action="open-album" data-artist="' + artist.index +
+          '" data-album="' + esc(String(album.id)) + '">' +
+          '<span class="result-cover" style="--h1:' + album.hue + ';--h2:' + album.hue2 + '">' +
+            '<span class="cover-vinyl"></span></span>' +
+          '<span class="result-body">' +
+            '<span class="result-title">' + esc(album.titulo) + '</span>' +
+            '<span class="result-sub">' + esc(artist.name) +
+              (album.anyo > 0 ? ' · ' + album.anyo : '') + '</span>' +
+          '</span>' +
+          (album.hasScore
+            ? '<span class="result-score" style="color:' + scoreColor(album.porcentaje) + '">' +
+              album.porcentaje + '%</span>'
+            : '<span class="result-score result-score--empty">—</span>') +
+          '<span class="result-arrow" aria-hidden="true">' + ICON.arrow + '</span>' +
+        '</button>';
+      }
+
+      function trackResult(artist, album, track) {
+        return '<button type="button" class="result-row" data-action="open-track" data-artist="' + artist.index +
+          '" data-album="' + esc(String(album.id)) + '" data-track="' + esc(String(track.id)) + '">' +
+          '<span class="result-num">' + esc(track.orden) + '</span>' +
+          '<span class="result-body">' +
+            '<span class="result-title">' + esc(track.nombre) + '</span>' +
+            '<span class="result-sub">' + esc(artist.name) + ' · ' + esc(album.titulo) + '</span>' +
+          '</span>' +
+          (track.hasScore
+            ? '<span class="result-score" style="color:' + scoreColor(track.porcentaje) + '">' +
+              track.porcentaje + '%</span>'
+            : '<span class="result-score result-score--empty">—</span>') +
+          '<span class="result-dur">' + formatTrackDuration(track.duracion) + '</span>' +
+          '<span class="result-arrow" aria-hidden="true">' + ICON.arrow + '</span>' +
+        '</button>';
+      }
+
+      function renderSearch(rawQuery) {
+        const query = fold(rawQuery.trim());
+        const artistHits = ARTISTS.filter(function (artist) {
+          return artist.searchName.indexOf(query) !== -1;
+        });
+        const albumHits = [];
+        const trackHits = [];
+
+        ARTISTS.forEach(function (artist) {
+          artist.albums.forEach(function (album) {
+            if (album.searchTitle.indexOf(query) !== -1) {
+              albumHits.push({ artist: artist, album: album });
+            }
+            album.tracks.forEach(function (track) {
+              if (track.searchName.indexOf(query) !== -1) {
+                trackHits.push({ artist: artist, album: album, track: track });
+              }
+            });
+          });
+        });
+
+        const total = artistHits.length + albumHits.length + trackHits.length;
+        let groups = '';
+
+        if (artistHits.length) {
+          groups += resultGroup('Artistas', artistHits.length, Math.min(artistHits.length, 8),
+            artistHits.slice(0, 8).map(artistResult).join(''));
+        }
+        if (albumHits.length) {
+          groups += resultGroup('Álbumes', albumHits.length, Math.min(albumHits.length, 18),
+            albumHits.slice(0, 18).map(function (hit) {
+              return albumResult(hit.artist, hit.album);
+            }).join(''));
+        }
+        if (trackHits.length) {
+          groups += resultGroup('Canciones', trackHits.length, Math.min(trackHits.length, 24),
+            trackHits.slice(0, 24).map(function (hit) {
+              return trackResult(hit.artist, hit.album, hit.track);
+            }).join(''));
+        }
+
+        const header = '<section class="page-head">' +
+          '<p class="eyebrow">Búsqueda</p>' +
+          '<h1>Resultados</h1>' +
+          '<p class="lede">' + (total ? numberFmt.format(total) + ' coincidencias' : 'Sin coincidencias') +
+            ' para <span class="query">«' + esc(rawQuery.trim()) + '»</span></p>' +
+        '</section>';
+
+        if (!total) {
+          groups = '<div class="empty">' +
+            '<span class="empty-icon">' + ICON.search + '</span>' +
+            '<h2>Sin resultados</h2>' +
+            '<p>No encontramos artistas, álbumes ni canciones que coincidan con «' +
+              esc(rawQuery.trim()) + '».</p></div>';
+        }
+
+        el.view.innerHTML = header + groups;
+      }
+      function parseRoute() {
+        const raw = location.hash.replace(/^#\/?/, '');
+        let parts = [];
+        try {
+          parts = raw ? raw.split('/').filter(Boolean).map(decodeURIComponent) : [];
+        } catch (error) {
+          parts = [];
+        }
+
+        if (parts[0] !== 'a') return { view: 'artists' };
+        const artist = ARTISTS[Number(parts[1])];
+        if (!artist) return { view: 'artists' };
+        if (parts[2] !== 'b') return { view: 'albums', artist: artist };
+
+        const album = artist.albums.filter(function (item) {
+          return String(item.id) === parts[3];
+        })[0];
+        if (!album) return { view: 'albums', artist: artist };
+
+        let trackId = null;
+        if (parts[4] === 't' && parts[5] !== undefined) {
+          const track = album.tracks.filter(function (item) {
+            return String(item.id) === parts[5];
+          })[0];
+          if (track) trackId = track.id;
+        }
+
+        return { view: 'album', artist: artist, album: album, trackId: trackId };
+      }
+
+      function renderNoData() {
+        el.view.innerHTML = '<div class="empty">' +
+          '<span class="empty-icon">' + ICON.vinyl + '</span>' +
+          '<h2>No hay datos cargados</h2>' +
+          '<p>Ejecuta <code>genera.cmd</code> para generar los archivos ' +
+          '<code>*.json.js</code> y recarga la página.</p></div>';
+      }
+
+      function render(options) {
+        options = options || {};
+        const shouldScroll = options.scroll !== false;
+        const query = state.query.trim();
+
+        if (!ARTISTS.length) {
+          renderNoData();
+          el.clear.hidden = true;
+          document.title = 'Discografías';
+          return;
+        }
+
+        if (query) {
+          renderSearch(query);
+          el.clear.hidden = false;
+          document.title = 'Buscar: ' + query + ' · Discografías';
+        } else {
+          const route = parseRoute();
+          if (route.view === 'artists') {
+            renderArtists();
+            document.title = 'Discografías';
+          } else if (route.view === 'albums') {
+            renderAlbums(route.artist);
+            document.title = route.artist.name + ' · Discografías';
+          } else {
+            renderAlbum(route);
+            document.title = route.album.titulo + ' · ' + route.artist.name;
+          }
+          el.clear.hidden = true;
+        }
+
+        if (shouldScroll) {
+          const target = el.view.querySelector('.track.is-target');
+          if (target) {
+            requestAnimationFrame(function () {
+              target.scrollIntoView({ block: 'center', behavior: reducedMotion ? 'auto' : 'smooth' });
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+          }
+        }
+      }
+
+      function navigate(hash) {
+        if (state.query) {
+          state.query = '';
+          el.search.value = '';
+          el.clear.hidden = true;
+        }
+        if (location.hash === hash) render();
+        else location.hash = hash;
+      }
+
+      function openLyrics(artistIndex, albumId, trackId) {
+        const artist = ARTISTS[Number(artistIndex)];
+        if (!artist) return;
+
+        const album = artist.albums.filter(function (item) {
+          return String(item.id) === String(albumId);
+        })[0];
+        if (!album) return;
+
+        const track = album.tracks.filter(function (item) {
+          return String(item.id) === String(trackId);
+        })[0];
+        if (!track) return;
+
+        el.lyricsAlbum.textContent = artist.name + ' · ' + album.titulo +
+          (album.anyo > 0 ? ' · ' + album.anyo : '');
+        el.lyricsTitle.textContent = (track.orden ? track.orden + '. ' : '') + track.nombre;
+
+        const originalAvailable = hasText(track.letra);
+        const translationAvailable = hasText(track.letra2);
+        el.lyricsOriginal.textContent = originalAvailable ? track.letra.trim() : 'Letra no disponible.';
+        el.lyricsTranslation.textContent = translationAvailable ? track.letra2.trim() : 'Traducción no disponible.';
+        el.lyricsOriginal.classList.toggle('is-missing', !originalAvailable);
+        el.lyricsTranslation.classList.toggle('is-missing', !translationAvailable);
+
+        document.body.classList.add('modal-open');
+        if (typeof el.dialog.showModal === 'function' && !el.dialog.open) el.dialog.showModal();
+        else el.dialog.setAttribute('open', '');
+      }
+
+      function closeLyrics() {
+        if (typeof el.dialog.close === 'function' && el.dialog.open) el.dialog.close();
+        else el.dialog.removeAttribute('open');
+        document.body.classList.remove('modal-open');
+      }
+
+      el.view.addEventListener('click', function (event) {
+        const target = event.target;
+        const trigger = target && typeof target.closest === 'function'
+          ? target.closest('[data-action]')
+          : null;
+        if (!trigger) return;
+
+        const action = trigger.getAttribute('data-action');
+        const artistIndex = trigger.getAttribute('data-artist');
+
+        if (action === 'open-artist') {
+          navigate('#/a/' + encodeURIComponent(artistIndex));
+        } else if (action === 'open-album') {
+          navigate('#/a/' + encodeURIComponent(artistIndex) + '/b/' +
+            encodeURIComponent(trigger.getAttribute('data-album')));
+        } else if (action === 'open-track') {
+          navigate('#/a/' + encodeURIComponent(artistIndex) + '/b/' +
+            encodeURIComponent(trigger.getAttribute('data-album')) + '/t/' +
+            encodeURIComponent(trigger.getAttribute('data-track')));
+        } else if (action === 'open-lyrics') {
+          openLyrics(artistIndex, trigger.getAttribute('data-album'), trigger.getAttribute('data-track'));
+        }
+      });
+
+      el.view.addEventListener('change', function (event) {
+        if (event.target && event.target.id === 'sort') {
+          state.sort = event.target.value;
+          render({ scroll: false });
+        }
+      });
+
+      el.search.addEventListener('input', function () {
+        state.query = el.search.value;
+        render({ scroll: false });
+      });
+
+      el.clear.addEventListener('click', function () {
+        state.query = '';
+        el.search.value = '';
+        render({ scroll: false });
+        el.search.focus();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        const tag = event.target && event.target.tagName
+          ? event.target.tagName.toLowerCase()
+          : '';
+        const typing = tag === 'input' || tag === 'textarea' || tag === 'select' ||
+          (event.target && event.target.isContentEditable);
+
+        if ((event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === 'k') {
+          event.preventDefault();
+          el.search.focus();
+          el.search.select();
+          return;
+        }
+        if (!typing && event.key === '/') {
+          event.preventDefault();
+          el.search.focus();
+          el.search.select();
+          return;
+        }
+        if (event.key === 'Escape' && document.activeElement === el.search && el.search.value) {
+          state.query = '';
+          el.search.value = '';
+          render({ scroll: false });
+          el.search.blur();
+        }
+      });
+
+      window.addEventListener('hashchange', function () {
+        if (state.query) {
+          state.query = '';
+          el.search.value = '';
+          el.clear.hidden = true;
+        }
+        render();
+      });
+
+      el.lyricsClose.addEventListener('click', closeLyrics);
+      el.dialog.addEventListener('click', function (event) {
+        if (event.target === el.dialog) closeLyrics();
+      });
+      el.dialog.addEventListener('close', function () {
+        document.body.classList.remove('modal-open');
+      });
+
+      paintStats();
+      render();
+    })();
+  </script>
+</body>
+</html>
